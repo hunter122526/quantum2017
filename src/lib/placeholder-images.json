@@ -1,0 +1,28 @@
+{
+  "placeholderImages": [
+    {
+      "id": "trader-1",
+      "description": "Portrait of a confident trader",
+      "imageUrl": "https://images.unsplash.com/photo-1594672830234-ba4cfe1202dc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bWFuJTIwcG9ydHJhaXR8ZW58MHx8fHwxNzcxOTM5OTA2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "man portrait"
+    },
+    {
+      "id": "trader-2",
+      "description": "Portrait of a professional financial analyst",
+      "imageUrl": "https://images.unsplash.com/photo-1557053908-4793c484d06f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHx3b21hbiUyMHBvcnRyYWl0fGVufDB8fHx8MTc3MjAzMjc1MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "woman portrait"
+    },
+    {
+      "id": "trader-3",
+      "description": "Portrait of an experienced investor",
+      "imageUrl": "https://images.unsplash.com/photo-1637979910686-ef82f715361b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxwZXJzb24lMjBvZmZpY2V8ZW58MHx8fHwxNzcyMDIzMzg2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person office"
+    },
+    {
+      "id": "trader-4",
+      "description": "Portrait of a successful day trader",
+      "imageUrl": "https://images.unsplash.com/photo-1619678309629-23bb8fa744cc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxtYW4lMjBwcm9mZXNzaW9uYWx8ZW58MHx8fHwxNzcxOTkzNzY1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "man professional"
+    }
+  ]
+}
