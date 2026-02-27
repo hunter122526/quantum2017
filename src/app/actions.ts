@@ -13,42 +13,55 @@ import {
 } from '@/lib/db-auth';
 import { UserSchema, type User, type Subscription } from '@/lib/schema';
 import { revalidatePath } from 'next/cache';
-import { headers } from 'next/headers';
 import { verifyJWT } from '@/lib/jwt';
-import { addMonths } from 'date-fns';
 
 // Helper to get the current user's ID from the JWT token
-async function getCurrentUserId() {
-  const authorization = headers().get('Authorization');
-  if (authorization?.startsWith('Bearer ')) {
-    const token = authorization.split('Bearer ')[1];
-    try {
-      const payload = await verifyJWT(token);
-      if (payload) {
-        return payload.userId;
-      }
-    } catch (error) {
-      console.error('Error verifying token:', error);
-    }
+async function getCurrentUserId(token: string) {
+  if (!token) {
+    throw new Error('No token provided');
   }
-  throw new Error('Unauthorized');
+  try {
+    const payload = await verifyJWT(token);
+    if (payload) {
+      return payload.userId;
+    }
+  } catch (error) {
+    console.error('Error verifying token:', error);
+    throw new Error('Invalid token');
+  }
 }
 
 // Helper to verify admin role
-async function verifyAdminRole() {
-  const authorization = headers().get('Authorization');
-  if (authorization?.startsWith('Bearer ')) {
-    const token = authorization.split('Bearer ')[1];
-    try {
-      const payload = await verifyJWT(token);
-      if (payload && payload.role === 'admin') {
-        return payload.userId;
-      }
-    } catch (error) {
-      console.error('Error verifying token:', error);
+async function verifyAdminRole(token: string) {
+  if (!token) {
+    throw new Error('No token provided');
+  }
+  try {
+    const payload = await verifyJWT(token);
+    if (payload && payload.role === 'admin') {
+      return payload.userId;
     }
+  } catch (error) {
+    console.error('Error verifying token:', error);
+    throw new Error('Invalid token');
   }
   throw new Error('Unauthorized or insufficient permissions');
+}
+
+// Helper to get user role from token
+async function getUserRole(token: string) {
+  if (!token) {
+    throw new Error('No token provided');
+  }
+  try {
+    const payload = await verifyJWT(token);
+    if (payload) {
+      return payload.role;
+    }
+  } catch (error) {
+    console.error('Error verifying token:', error);
+    throw new Error('Invalid token');
+  }
 }
 
 // --- User Actions ---
@@ -67,15 +80,16 @@ export async function createUserInDb(userData: {
   return user;
 }
 
-export async function getUserSubscription(): Promise<Subscription | null> {
-  const userId = await getCurrentUserId();
+export async function getUserSubscription(token: string): Promise<Subscription | null> {
+  const userId = await getCurrentUserId(token);
   return await getSubscription(userId);
 }
 
 export async function activateSubscription(
+  token: string,
   planName: 'Starter' | 'Pro' | 'Expert'
 ) {
-  const userId = await getCurrentUserId();
+  const userId = await getCurrentUserId(token);
 
   // Create new subscription record
   const subscription = await createSubscription(userId, planName);
@@ -96,8 +110,8 @@ export async function activateSubscription(
   return subscription;
 }
 
-export async function cancelSubscription(subscriptionId: string) {
-  const userId = await getCurrentUserId();
+export async function cancelSubscription(token: string, subscriptionId: string) {
+  const userId = await getCurrentUserId(token);
 
   // Verify subscription belongs to user
   const subscription = await getSubscription(userId);
@@ -125,18 +139,21 @@ export async function cancelSubscription(subscriptionId: string) {
 
 // --- Admin Actions ---
 
-export async function getUsers(): Promise<User[]> {
-  await verifyAdminRole();
+export async function getUsers(token: string): Promise<User[]> {
+  await verifyAdminRole(token);
   return getAllUsers();
 }
 
-export async function addUser(data: {
-  name: string;
-  email: string;
-  password?: string;
-  plan: User['plan'];
-}) {
-  await verifyAdminRole();
+export async function addUser(
+  token: string,
+  data: {
+    name: string;
+    email: string;
+    password?: string;
+    plan: User['plan'];
+  }
+) {
+  await verifyAdminRole(token);
 
   if (!data.password) {
     throw new Error('Password is required to create a new user.');
@@ -164,10 +181,11 @@ export async function addUser(data: {
 }
 
 export async function updateUserAction(
+  token: string,
   userId: string,
   data: Partial<Pick<User, 'name' | 'email' | 'plan' | 'status'>>
 ) {
-  await verifyAdminRole();
+  await verifyAdminRole(token);
 
   await updateUser(userId, data);
 
@@ -182,8 +200,8 @@ export async function updateUserAction(
   revalidatePath('/admin/dashboard');
 }
 
-export async function deleteUserAction(userId: string) {
-  await verifyAdminRole();
+export async function deleteUserAction(token: string, userId: string) {
+  await verifyAdminRole(token);
 
   await deleteUser(userId);
 

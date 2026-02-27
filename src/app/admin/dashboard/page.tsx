@@ -11,9 +11,10 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { User } from "@/lib/schema";
-import { getUsers, addUser, updateUser, deleteUser } from "@/app/actions";
+import { getUsers, addUser, updateUserAction, deleteUserAction } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
 
 const plans: User['plan'][] = ["Starter", "Pro", "Expert"];
 
@@ -26,11 +27,19 @@ export default function AdminDashboardPage() {
   const [newUser, setNewUser] = useState<{name: string, email: string, plan: User['plan'], password?: string}>({ name: "", email: "", plan: "Starter" });
   const { toast } = useToast();
   const router = useRouter();
+  const { token, user, loading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, authLoading, router]);
 
   const fetchUsers = async () => {
+    if (!token) return;
     setIsLoading(true);
     try {
-      const fetchedUsers = await getUsers();
+      const fetchedUsers = await getUsers(token);
       setUsers(fetchedUsers);
     } catch (error) {
       toast({
@@ -45,7 +54,7 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [token]);
 
   const openAddDialog = () => {
     setDialogMode("add");
@@ -60,9 +69,9 @@ export default function AdminDashboardPage() {
   };
 
   const handleAddUser = async () => {
-    if (newUser.name && newUser.email && newUser.password) {
+    if (newUser.name && newUser.email && newUser.password && token) {
       try {
-        await addUser({
+        await addUser(token, {
           name: newUser.name,
           email: newUser.email,
           password: newUser.password,
@@ -88,9 +97,9 @@ export default function AdminDashboardPage() {
   };
 
   const handleUpdateUser = async () => {
-    if (currentUser) {
+    if (currentUser && token) {
       try {
-        await updateUser(currentUser.id, {
+        await updateUserAction(token, currentUser.id, {
           name: currentUser.name,
           email: currentUser.email,
           plan: currentUser.plan,
@@ -110,9 +119,9 @@ export default function AdminDashboardPage() {
   };
 
   const handleDeleteUser = async () => {
-    if (currentUser) {
+    if (currentUser && token) {
       try {
-        await deleteUser(currentUser.id);
+        await deleteUserAction(token, currentUser.id);
         toast({ title: "Success", description: "User deleted successfully." });
         setDialogOpen(false);
         fetchUsers();

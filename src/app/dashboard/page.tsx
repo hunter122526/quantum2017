@@ -25,7 +25,7 @@ export default function DashboardPage() {
     const [activeSubscription, setActiveSubscription] = useState<Subscription | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
-    const { user, loading: authLoading } = useAuth();
+    const { user, token, loading: authLoading } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
@@ -35,14 +35,15 @@ export default function DashboardPage() {
     }, [user, authLoading, router]);
 
     const fetchSubscription = async () => {
-        if (!user) return;
+        if (!user || !token) return;
         setIsLoading(true);
         try {
-            const sub = await getUserSubscription();
+            const sub = await getUserSubscription(token);
             if (sub) {
                 setActiveSubscription(sub);
             }
         } catch (error) {
+            console.error('Error fetching subscription:', error);
             toast({
                 title: "Error",
                 description: "Could not fetch subscription details.",
@@ -55,7 +56,7 @@ export default function DashboardPage() {
 
     useEffect(() => {
         fetchSubscription();
-    }, [user]);
+    }, [user, token]);
 
 
     const handleChoosePlan = (pkg: Plan) => {
@@ -64,9 +65,9 @@ export default function DashboardPage() {
     };
 
     const handleActivatePlan = async () => {
-        if (selectedPlan) {
+        if (selectedPlan && token) {
             try {
-                await activateSubscription(selectedPlan.name);
+                await activateSubscription(token, selectedPlan.name);
                 toast({ title: "Success!", description: `Your ${selectedPlan.name} plan is now active.` });
                 fetchSubscription(); // Refresh subscription data
                 setDialogOpen(false);
